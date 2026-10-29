@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DS3 Bosstracker</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#14100f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hunt Ledger">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Spectral:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f1ebe0;--panel:#e8e0d0;--ink:#2a1d1a;--mute:#7a6a60;--line:#c9bca8;
+  --main:#8a1c2b;--opt:#2f6f6a;--dlc:#6b3fa0;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14100f;--panel:#1e1816;--ink:#e9dfd0;--mute:#9a8b7f;--line:#3a2e2a;
+  --main:#d44a5c;--opt:#4fb3aa;--dlc:#a97ee0;}}
+:root[data-theme="dark"]{--bg:#14100f;--panel:#1e1816;--ink:#e9dfd0;--mute:#9a8b7f;--line:#3a2e2a;--main:#d44a5c;--opt:#4fb3aa;--dlc:#a97ee0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Spectral,Georgia,serif;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+h1{font-family:"IM Fell English",Georgia,serif;font-weight:400;font-size:2.4rem;margin:8px 0 2px;letter-spacing:.01em}
+.sub{color:var(--mute);margin:0 0 16px;font-style:italic}
+.total{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.bar{flex:1;height:8px;background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--main);transition:width .3s}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;align-items:center}
+.chip{font:inherit;font-size:.9rem;padding:5px 12px;border-radius:99px;border:1.5px solid var(--c);color:var(--c);background:transparent;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--c);color:var(--bg)}
+.chip.plain{--c:var(--mute);margin-left:auto}
+.chip:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.area{margin:0 0 10px;border:1px solid var(--line);border-left:5px solid var(--c);border-radius:4px;background:var(--panel)}
+.area.main{--c:var(--main)}.area.opt{--c:var(--opt)}.area.dlc{--c:var(--dlc)}
+.area .area{margin:6px 0 6px 14px;background:transparent}
+summary{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";color:var(--c);transition:transform .15s;font-size:.8rem}
+details[open]>summary::before{transform:rotate(90deg)}
+.aname{font-family:"IM Fell English",Georgia,serif;font-size:1.25rem;flex:1}
+.tag{font-size:.78rem;color:var(--c)}
+.cnt{font-size:.85rem;color:var(--mute);min-width:3em;text-align:right}
+.body{padding:2px 12px 10px 38px}
+label.row{display:flex;gap:10px;align-items:baseline;padding:3px 0;cursor:pointer}
+input[type=checkbox]{accent-color:var(--c,var(--main));width:17px;height:17px;flex:none;transform:translateY(3px)}
+.boss .t{font-weight:600}
+.boss .n{color:var(--c);font-variant-numeric:tabular-nums;min-width:1.8em}
+.item{color:var(--mute);font-size:.95rem;padding-left:2.2em}
+input:checked+.t{text-decoration:line-through;opacity:.55}
+.empty{color:var(--mute);text-align:center;padding:20px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.head .chip{--c:var(--ink);white-space:nowrap}
+.area.done{background:#cfe5cc}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .area.done{background:#1f3a26}}
+:root[data-theme="dark"] .area.done{background:#1f3a26}
+.area.done .item,.area.done .cnt{color:var(--ink)}
+dialog#map{width:min(96vw,1100px);max-height:92vh;padding:0;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+dialog#map::backdrop{background:rgba(0,0,0,.75)}
+.mhead{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.mhead span{font-style:italic;color:var(--mute);font-size:.9rem}
+#mwrap{overflow:auto;max-height:calc(92vh - 52px);-webkit-overflow-scrolling:touch}
+#mimg{display:block;width:100%;height:auto;cursor:zoom-in}
+#mimg.zoom{width:250%;max-width:none;cursor:zoom-out}
+#mmsg{padding:24px;text-align:center;color:var(--mute)}
+footer{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);text-align:center;color:var(--mute);font-size:.9rem}
+footer p{margin:4px 0}
+footer .chip{--c:var(--mute);font-size:.85rem;padding:2px 10px;margin-left:6px}
+dialog#credits{width:min(92vw,460px);padding:0;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+dialog#credits::backdrop{background:rgba(0,0,0,.75)}
+#clist{margin:0;padding:14px 18px 18px 36px}
+#clist li{padding:3px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><h1>Boss Tracker</h1><button class="chip" id="mapbtn">🗺 Map</button></div>
+  <p class="sub">A Darksouls 3 progress route. Tick an area to tick everything in it.</p>
+  <div class="total"><div class="bar"><i id="tb"></i></div><span id="tc" class="cnt"></span></div>
+  <div class="tools" id="tools">
+    <button class="chip" style="--c:var(--main)" data-f="main" aria-pressed="true">Main path</button>
+    <button class="chip" style="--c:var(--opt)" data-f="opt" aria-pressed="true">Optional</button>
+    <button class="chip" style="--c:var(--dlc)" data-f="dlc" aria-pressed="true">Old Hunters DLC</button>
+    <button class="chip plain" id="reset" aria-pressed="false">Reset</button>
+  </div>
+  <div id="tree"></div>
+  <footer>
+    <p>Made by XemXem, with the help of AI (Claude by Anthropic). <button class="chip" id="cbtn">Credits</button></p>
+    <p>Unofficial fan project. Dark Souls belongs to FromSoftware.</p>
+    <p>this is still being worked on and things changed due to AI not knowing where things are supposed to be haha.</p>
+  </footer>
+</div>
+<dialog id="map" aria-label="Map">
+  <div class="mhead"><span>Tap the map to zoom in or out</span><button class="chip plain" id="mclose" style="margin:0">Close</button></div>
+  <div id="mwrap"><img id="mimg" alt="Bloodborne map" hidden><p id="mmsg" hidden>No map found yet. Add an image named <b>map.png</b> (or map.jpg / map.webp) to the same folder as index.html in your GitHub repo.</p></div>
+</dialog>
+<dialog id="credits" aria-label="Credits">
+  <div class="mhead"><span>Credits</span><button class="chip plain" id="cclose" style="margin:0">Close</button></div>
+  <ul id="clist"></ul>
+</dialog>
+<script>
+// t: m=main, o=optional, d=DLC. b=bosses (in order), i=notable items/lamps, k=sub-areas
+const ROUTE=[
+{n:"Cemetary of Ash",t:"m",b:["Ludex Gundyr"],i:["Crystal Lizard"]},
+{n:"Firelink Shrine",t:"m",b:[],i:["Estus Flask Shard"]},
+{n:"High Wall of Lothric",t:"m",b:["Vordt of the Boreal Valley","Dancer of the Boreal Valley"],i:["Estus Flask Shard"],k:[
+  {n:"Consumed Kings Garden",t:"o",b:["Oceiros, the Consumed King"],i:["Estus Flask Shard"]},
+  {n:"Untended Graves",t:"o",b:["Champion Gundyr"],i:["Crystal Lizard","NPC Invader"]},
+  {n:"Undead Settlement",t:"o",b:["Curse-Rotted Greatwood"],i:["Estus Flask Shard","Undead Boneshard","NPC Invader"]}]},
+{n:"Road of Sacrifices",t:"m",b:["Crystal Sage"],i:["Estus Flask Shard","Blacksmith Coal","NPC Invader"],k:[
+  {n:"Cathedral of the Deep",t:"m",b:["Deacons of the Deep"],i:["Estus Flask Shard","Undead Boneshard","Crystal Lizard","NPC Invader"]}]},
+{n:"Faron Keep",t:"m",b:["Abyss Watchers"],i:["Estus Flask Shard","Undead Boneshard","Blacksmith Coal","Crystal Lizard","NPC Invader"],k:[
+  {n:"Upper Faron Keep",t:"o",b:["Stray Demon"],i:[]}]},
+{n:"Catacombs of Carthus",t:"m",b:["High Lord Wolnir"],i:["Undead Boneshard","NPC Invader"],k:[
+  {n:"Smouldering Lake",t:"o",b:["Old Demon King"],i:["Estus Flask Shard","Undead Boneshard","Undead Boneshard 2"]}]},
+{n:"Irthyll of the Boreal Valley",t:"m",b:["Pontiff Sulyvahn"],i:["Undead Boneshard","NPC Invader x2"],k:[
+  {n:"Anor Londo",t:"m",b:["Aldrich, Devourer of Gods"],i:["Estus Flask Shard","Blacksmith Coal"]}]},
+{n:"Irithyll Dungeon",t:"m",b:[],i:["Estus Flask Shard","NPC Invader"],k:[
+  {n:"Archdragon Peak",t:"o",b:["Nameless King","Ancient Wyvern"],i:[]}]},
+{n:"Profaned Capital",t:"m",b:["Yhorm the Giant"],i:["Undead Boneshard"]},
+{n:"Lothric Castle",t:"m",b:["Dragonslayer Armour"],i:["Undead Boneshard"]},
+{n:"Grand Archives",t:"m",b:["Lothric, Younger Prince"],i:["Estus Flask Shard","Undead Boneshard"]},
+{n:"Kiln of the First Flame",t:"m",b:["Soul of Cinder"],i:[]}
+];
+
+const KEY="ds3-ledger-v1";
+let st={},flt={main:true,opt:true,dlc:true};
+try{st=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){st={}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const cls={m:"main",o:"opt",d:"dlc"},lab={m:"Main path",o:"Optional",d:"DLC"};
+let bossNo=0;
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/'/g,"&#39;");
+
+// flatten: collect leaf keys
+function keys(a,p){let r=[];a.b.forEach((_,j)=>r.push(p+"b"+j));a.i.forEach((_,j)=>r.push(p+"i"+j));
+  (a.k||[]).forEach((c,j)=>{r=r.concat(keys(c,p+"k"+j+"/"))});return r}
+function bossKeys(a,p){let r=a.b.map((_,j)=>p+"b"+j);(a.k||[]).forEach((c,j)=>{r=r.concat(bossKeys(c,p+"k"+j+"/"))});return r}
+
+function build(a,p,top,idx){
+  const k=cls[a.t];
+  let h=`<details class="area ${k}" data-t="${k}" ${top?"":"open"} data-p="${p}"><summary>
+  <input type="checkbox" class="ag" data-p="${p}" aria-label="Tick all in ${esc(a.n)}">
+  <span class="aname">${esc(a.n)}</span><span class="tag">${lab[a.t]}</span><span class="cnt" data-c="${p}"></span></summary><div class="body">`;
+  a.b.forEach((b,j)=>{bossNo++;h+=`<label class="row boss"><span class="n">${a.t==="o"?"·":bossNo}</span><input type="checkbox" data-k="${p}b${j}"><span class="t">${esc(b)}</span></label>`;});
+  a.i.forEach((it,j)=>{h+=`<label class="row item"><input type="checkbox" data-k="${p}i${j}"><span class="t">${esc(it)}</span></label>`;});
+  (a.k||[]).forEach((c,j)=>{h+=build(c,p+"k"+j+"/",false)});
+  return h+`</div></details>`;
+}
+const tree=document.getElementById("tree");
+function render(){
+  bossNo=0;
+  tree.innerHTML=ROUTE.map((a,i)=>build(a,"a"+i+"/",true)).join("");
+  refresh();
+}
+function find(p){ // path like a3/k0/ -> node
+  const parts=p.split("/").filter(Boolean);let n=ROUTE[+parts[0].slice(1)];
+  for(let i=1;i<parts.length;i++)n=n.k[+parts[i].slice(1)];return n}
+function refresh(){
+  let tot=0,done=0;
+  document.querySelectorAll("input[data-k]").forEach(c=>{c.checked=!!st[c.dataset.k]});
+  document.querySelectorAll(".ag").forEach(c=>{
+    const ks=keys(find(c.dataset.p),c.dataset.p),d=ks.filter(x=>st[x]).length;
+    c.checked=d===ks.length&&ks.length>0;c.closest("details").classList.toggle("done",c.checked);c.indeterminate=d>0&&d<ks.length;
+    document.querySelector(`[data-c="${c.dataset.p}"]`).textContent=d+"/"+ks.length;
+  });
+  ROUTE.forEach((a,i)=>{const ks=keys(a,"a"+i+"/");const vis=flt[cls[a.t]];if(vis){tot+=ks.length;done+=ks.filter(x=>st[x]).length}});
+  document.getElementById("tb").style.width=(tot?done/tot*100:0)+"%";
+  document.getElementById("tc").textContent=done+"/"+tot;
+  document.querySelectorAll("details.area").forEach(d=>{
+    d.hidden=!flt[d.dataset.t];
+  });
+}
+tree.addEventListener("change",e=>{
+  const c=e.target;
+  if(c.dataset.k){st[c.dataset.k]=c.checked?1:0}
+  else if(c.classList.contains("ag")){
+    keys(find(c.dataset.p),c.dataset.p).forEach(k=>{st[k]=c.checked?1:0});
+  }
+  save();refresh();
+});
+tree.addEventListener("click",e=>{if(e.target.classList.contains("ag"))e.stopPropagation()});
+document.querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{
+  const f=b.dataset.f;flt[f]=!flt[f];b.setAttribute("aria-pressed",flt[f]);refresh();}));
+document.getElementById("reset").addEventListener("click",()=>{
+  if(confirm("Clear all progress?")){st={};save();refresh();}});
+const mapD=document.getElementById("map"),mi=document.getElementById("mimg"),mm=document.getElementById("mmsg");
+let mapTry=["map.png","map.jpg","map.jpeg","map.webp"],mapIdx=0;
+function loadMap(){mi.hidden=true;mm.hidden=true;mapIdx=0;mi.src=mapTry[0]}
+mi.onload=()=>{mi.hidden=false;mm.hidden=true};
+mi.onerror=()=>{mapIdx++;if(mapIdx<mapTry.length)mi.src=mapTry[mapIdx];else{mi.hidden=true;mm.hidden=false}};
+mi.addEventListener("click",()=>mi.classList.toggle("zoom"));
+document.getElementById("mapbtn").addEventListener("click",()=>{mi.classList.remove("zoom");if(mi.hidden&&mm.hidden)loadMap();mapD.showModal()});
+document.getElementById("mclose").addEventListener("click",()=>mapD.close());
+mapD.addEventListener("click",e=>{if(e.target===mapD)mapD.close()});
+const cD=document.getElementById("credits"),cL=document.getElementById("clist");
+const CREDITS_FALLBACK=["Map artwork - (add the artist's name in credits.txt)"];
+function showCredits(lines){cL.innerHTML="";lines.forEach(t=>{const li=document.createElement("li");li.textContent=t;cL.appendChild(li)})}
+async function loadCredits(){
+  let lines=CREDITS_FALLBACK;
+  try{const r=await fetch("credits.txt",{cache:"no-store"});if(r.ok){
+    const l=(await r.text()).split(/\r?\n/).map(x=>x.trim()).filter(x=>x&&!x.startsWith("#"));if(l.length)lines=l}}catch(e){}
+  showCredits(lines);
+}
+document.getElementById("cbtn").addEventListener("click",()=>{loadCredits();cD.showModal()});
+document.getElementById("cclose").addEventListener("click",()=>cD.close());
+cD.addEventListener("click",e=>{if(e.target===cD)cD.close()});
+render();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}
+</script>
+</body>
+</html>

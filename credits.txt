@@ -1,0 +1,3 @@
+# Credits list. One credit per line, e.g.  Name - what they did
+# Lines starting with # are ignored. Save the file and re-upload it to GitHub.
+Map artwork - VNAndrei
